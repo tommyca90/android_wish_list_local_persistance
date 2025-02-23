@@ -13,7 +13,11 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +27,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mywishlistapp.data.Wish
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddEditDetailView(
@@ -30,13 +36,23 @@ fun AddEditDetailView(
     viewModel: WishViewModel,
     navController: NavController
 ) {
+    val snackMessage = remember {
+        mutableStateOf("")
+    }
+
+    val scope = rememberCoroutineScope()
+
+    val scaffoldState = rememberScaffoldState()
+
     Scaffold(
+        scaffoldState = scaffoldState,
         topBar = {
             AppBarView(
                 title = if (id == 0L) stringResource(id = R.string.add_wish) else stringResource(id = R.string.edit_wish),
-                onBackNavClicked = {navController.navigateUp()}
+                onBackNavClicked = { navController.navigateUp() }
             )
-        }) {
+        }
+    ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -57,7 +73,26 @@ fun AddEditDetailView(
                 onValueChanged = { viewModel.onWishDescriptionChanged(it) }
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Button(onClick = {}) {
+            Button(onClick = {
+                if (viewModel.wishTitleState.value.isNotEmpty() && viewModel.wishDescriptionState.value.isNotEmpty()) {
+                    if (id == 0L) {
+                        viewModel.addWish(
+                            Wish(
+                                title = viewModel.wishTitleState.value.trim(),
+                                description = viewModel.wishDescriptionState.value.trim()
+                            )
+                        )
+                        snackMessage.value = "Wish has been added"
+                    } else {
+                    }
+                } else {
+                    snackMessage.value = "Enter fields to create a wish"
+                }
+                scope.launch {
+                    scaffoldState.snackbarHostState.showSnackbar(snackMessage.value)
+                    navController.navigateUp()
+                }
+            }) {
                 Text(
                     text = if (id == 0L) stringResource(id = R.string.add_wish) else stringResource(id = R.string.edit_wish),
                     fontSize = 18.sp
@@ -77,7 +112,8 @@ fun WishTextField(
         value = value,
         onValueChange = onValueChanged,
         label = { Text(text = label, color = Color.Black) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(horizontal = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         colors = TextFieldDefaults.outlinedTextFieldColors(
