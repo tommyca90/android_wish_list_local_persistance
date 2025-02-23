@@ -10,7 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-class WishViewModel(private val wishRepository: WishRepository) : ViewModel() {
+class WishViewModel(
+    private val wishRepository: WishRepository = Graph.wishRepository
+) : ViewModel() {
+
     private val _wishTitleState = mutableStateOf("")
     private val _wishDescriptionState = mutableStateOf("")
 
@@ -39,18 +42,18 @@ class WishViewModel(private val wishRepository: WishRepository) : ViewModel() {
         }
     }
 
-    fun updateWish(wish: Wish){
-        viewModelScope.launch(Dispatchers.IO){
+    fun updateWish(wish: Wish) {
+        viewModelScope.launch(Dispatchers.IO) {
             wishRepository.updateWish(wish)
         }
     }
 
-    fun getWishById(id: Long): Flow<Wish>{
+    fun getWishById(id: Long): Flow<Wish> {
         return wishRepository.getWishById(id)
     }
 
-    fun deleteWish(wish: Wish){
-        viewModelScope.launch(Dispatchers.IO){
+    fun deleteWish(wish: Wish) {
+        viewModelScope.launch(Dispatchers.IO) {
             wishRepository.deleteWish(wish)
         }
     }
